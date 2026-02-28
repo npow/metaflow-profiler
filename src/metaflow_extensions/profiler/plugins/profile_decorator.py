@@ -55,7 +55,7 @@ class ProfileCardDecorator(StepDecorator):
 
     name = "profile_card"  # type: ignore[misc]
 
-    defaults: ClassVar[dict[str, Any]] = {
+    defaults: ClassVar[dict[str, Any]] = {  # type: ignore[misc]
         "profiler": None,          # None → pick best available
         "sample_interval": 0.001,
         "timeline_interval": 0.5,
