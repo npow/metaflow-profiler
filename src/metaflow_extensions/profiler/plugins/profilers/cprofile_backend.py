@@ -143,7 +143,7 @@ class CProfileBackend(ProfilerBackend):
             stream = io.StringIO()
             stats = pstats.Stats(self._profiler, stream=stream)
             stats.sort_stats("cumulative")
-            sample_count = int(stats.total_calls)
+            sample_count = int(stats.total_calls)  # type: ignore[attr-defined]
 
             # pstats.Stats.stats: dict of (file, line, func) → (pcalls, ncalls, tt, ct, callers)
             raw: dict[_Key, Any] = stats.stats  # type: ignore[attr-defined]

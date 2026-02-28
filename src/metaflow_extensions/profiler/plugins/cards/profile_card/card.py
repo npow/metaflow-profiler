@@ -19,7 +19,7 @@ from metaflow.cards import MetaflowCard
 class ProfileCard(MetaflowCard):
     """Render an interactive profiling card from ``_profile_card_data`` artifact."""
 
-    type = "profile_card"
+    type = "profile_card"  # type: ignore[assignment]
     ALLOW_USER_COMPONENTS = False
     RUNTIME_UPDATABLE = False
 

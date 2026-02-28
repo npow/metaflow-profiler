@@ -53,7 +53,7 @@ class ProfileCardDecorator(StepDecorator):
         False if you want to manage card rendering yourself.
     """
 
-    name = "profile_card"
+    name = "profile_card"  # type: ignore[misc]
 
     defaults: ClassVar[dict[str, Any]] = {
         "profiler": None,          # None → pick best available

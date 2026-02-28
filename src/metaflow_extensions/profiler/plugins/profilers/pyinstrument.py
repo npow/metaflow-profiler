@@ -17,7 +17,7 @@ from ._collectors import _TimelineCollector
 
 # ── frame conversion ──────────────────────────────────────────────────────────
 
-def _parse_frame_str(frame_str: str):
+def _parse_frame_str(frame_str: str) -> tuple[str, str, int]:
     """Parse a pyinstrument frame_records frame string.
 
     Format: "funcname\\x00filename\\x00lineno[\\x01suffix]"

@@ -55,6 +55,7 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.8",
     "mypy>=1.10",
+    "types-psutil>=5.9",
 ]
 
 [tool.hatch.build.targets.wheel]
