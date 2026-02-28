@@ -68,6 +68,11 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP", "RUF", "SIM", "TCH"]
 
+[tool.ruff.lint.per-file-ignores]
+# card.py embeds JavaScript/HTML in multi-line strings; long lines and the
+# intentional › breadcrumb separator are expected there.
+"src/metaflow_extensions/profiler/plugins/cards/profile_card/card.py" = ["E501", "RUF001"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["metaflow_extensions"]
 force-single-line = true

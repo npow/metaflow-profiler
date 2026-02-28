@@ -13,9 +13,6 @@ import dataclasses
 from abc import ABC
 from abc import abstractmethod
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 
 @dataclasses.dataclass
@@ -48,11 +45,11 @@ class ProfileData:
     #:       ...
     #:     ]
     #:   }
-    call_tree: Optional[Dict[str, Any]]
+    call_tree: dict[str, Any] | None
 
     #: System resource samples collected at regular intervals.
     #: Each sample: ``{"ts": <seconds_since_start>, "cpu_pct": float, "rss_mb": float}``.
-    timeline: List[Dict[str, float]]
+    timeline: list[dict[str, float]]
 
     #: Peak CPU utilisation of the process (%) across the timeline.
     peak_cpu_pct: float
@@ -70,7 +67,7 @@ class ProfileData:
 
     #: Memory allocation flamegraph in d3-flamegraph format (values in MB).
     #: Only populated when memray is installed.
-    memory_tree: Optional[Dict[str, Any]] = None
+    memory_tree: dict[str, Any] | None = None
 
     #: Peak disk read throughput (MB/s) across the timeline.
     peak_disk_read_mb_s: float = 0.0

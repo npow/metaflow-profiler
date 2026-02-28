@@ -18,7 +18,7 @@ class TestCProfileBackend:
         backend = CProfileBackend(timeline_interval=0.1)
         backend.start()
         # Minimal workload so there's something to profile
-        total = sum(range(50_000))
+        sum(range(50_000))
         data = backend.stop()
 
         assert isinstance(data, ProfileData)
@@ -81,15 +81,11 @@ class TestCProfileBackend:
 )
 class TestPyinstrumentBackend:
     def test_is_available(self):
-        from metaflow_extensions.profiler.plugins.profilers.pyinstrument import (
-            PyinstrumentBackend,
-        )
+        from metaflow_extensions.profiler.plugins.profilers.pyinstrument import PyinstrumentBackend
         assert PyinstrumentBackend.is_available() is True
 
     def test_start_stop_returns_profile_data(self):
-        from metaflow_extensions.profiler.plugins.profilers.pyinstrument import (
-            PyinstrumentBackend,
-        )
+        from metaflow_extensions.profiler.plugins.profilers.pyinstrument import PyinstrumentBackend
         backend = PyinstrumentBackend(sample_interval=0.001, timeline_interval=0.1)
         backend.start()
         time.sleep(0.05)  # let the profiler collect a few samples
@@ -101,9 +97,7 @@ class TestPyinstrumentBackend:
         assert data.duration > 0
 
     def test_call_tree_has_children(self):
-        from metaflow_extensions.profiler.plugins.profilers.pyinstrument import (
-            PyinstrumentBackend,
-        )
+        from metaflow_extensions.profiler.plugins.profilers.pyinstrument import PyinstrumentBackend
         backend = PyinstrumentBackend(sample_interval=0.001, timeline_interval=0.1)
         backend.start()
         time.sleep(0.1)
@@ -114,9 +108,7 @@ class TestPyinstrumentBackend:
             assert data.call_tree["name"] == "root"
 
     def test_extended_fields_have_defaults(self):
-        from metaflow_extensions.profiler.plugins.profilers.pyinstrument import (
-            PyinstrumentBackend,
-        )
+        from metaflow_extensions.profiler.plugins.profilers.pyinstrument import PyinstrumentBackend
         backend = PyinstrumentBackend(sample_interval=0.001, timeline_interval=0.1)
         backend.start()
         time.sleep(0.05)

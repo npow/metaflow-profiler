@@ -9,16 +9,13 @@ the decorator or card layers.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import tempfile
 import threading
 import time
 from pathlib import Path
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-
 
 # ── Timeline collector ────────────────────────────────────────────────────────
 
@@ -40,9 +37,9 @@ class _TimelineCollector:
 
     def __init__(self, interval: float = 0.5) -> None:
         self._interval = interval
-        self._samples: List[Dict[str, float]] = []
+        self._samples: list[dict[str, float]] = []
         self._stop = threading.Event()
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self._t0: float = 0.0
 
     def start(self) -> None:
@@ -57,7 +54,7 @@ class _TimelineCollector:
         )
         self._thread.start()
 
-    def stop(self) -> List[Dict[str, float]]:
+    def stop(self) -> list[dict[str, float]]:
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=5.0)
@@ -71,10 +68,10 @@ class _TimelineCollector:
         proc.cpu_percent(interval=None)
 
         # State for delta-based I/O rate computation.
-        prev_disk_read: Optional[int] = None
-        prev_disk_write: Optional[int] = None
-        prev_net_recv: Optional[int] = None
-        prev_net_sent: Optional[int] = None
+        prev_disk_read: int | None = None
+        prev_disk_write: int | None = None
+        prev_net_recv: int | None = None
+        prev_net_sent: int | None = None
         prev_ts: float = time.monotonic()
 
         # Try to initialise GPU access once; keep handle or set to None.
@@ -96,13 +93,11 @@ class _TimelineCollector:
                 ts = round(now - self._t0, 3)
                 cpu = round(proc.cpu_percent(interval=None), 1)
                 rss = round(proc.memory_info().rss / (1024 * 1024), 2)
-                sample: Dict[str, float] = {"ts": ts, "cpu_pct": cpu, "rss_mb": rss}
+                sample: dict[str, float] = {"ts": ts, "cpu_pct": cpu, "rss_mb": rss}
 
                 # Thread count
-                try:
+                with contextlib.suppress(Exception):
                     sample["thread_count"] = float(proc.num_threads())
-                except Exception:
-                    pass
 
                 # Disk I/O rates (delta bytes / elapsed seconds → MB/s)
                 try:
@@ -171,7 +166,7 @@ class _TimelineCollector:
 # ── Memory allocation tree builder ────────────────────────────────────────────
 
 
-def _build_memory_tree(records: List[Any]) -> Optional[Dict[str, Any]]:
+def _build_memory_tree(records: list[Any]) -> dict[str, Any] | None:
     """Build a d3-flamegraph tree (values in MB) from memray allocation records.
 
     ``records`` comes from ``FileReader.get_high_watermark_allocation_records()``.
@@ -180,12 +175,12 @@ def _build_memory_tree(records: List[Any]) -> Optional[Dict[str, Any]]:
     """
 
     class _Node:
-        __slots__ = ("name", "value", "children")
+        __slots__ = ("children", "name", "value")
 
         def __init__(self, name: str) -> None:
             self.name = name
             self.value = 0.0
-            self.children: Dict[str, "_Node"] = {}
+            self.children: dict[str, _Node] = {}
 
     root = _Node("root")
 
@@ -243,8 +238,8 @@ def _build_memory_tree(records: List[Any]) -> Optional[Dict[str, Any]]:
     if not root.children:
         return None
 
-    def _to_d3(node: _Node) -> Dict[str, Any]:
-        result: Dict[str, Any] = {"name": node.name, "value": round(node.value, 4)}
+    def _to_d3(node: _Node) -> dict[str, Any]:
+        result: dict[str, Any] = {"name": node.name, "value": round(node.value, 4)}
         children = [_to_d3(c) for c in node.children.values() if c.value >= 0.001]
         children.sort(key=lambda n: n["value"], reverse=True)
         if children:
@@ -266,7 +261,7 @@ class _MemoryTracker:
     """
 
     def __init__(self) -> None:
-        self._tmpfile: Optional[Path] = None
+        self._tmpfile: Path | None = None
         self._tracker: Any = None
         self._available: bool = False
 
@@ -285,7 +280,7 @@ class _MemoryTracker:
         except Exception:
             self._available = False
 
-    def stop(self) -> Optional[Dict[str, Any]]:
+    def stop(self) -> dict[str, Any] | None:
         tree = None
         reader = None
         try:
@@ -303,8 +298,6 @@ class _MemoryTracker:
             # Explicitly release the reader's file handle before unlinking.
             del reader
             if self._tmpfile is not None and self._tmpfile.exists():
-                try:
+                with contextlib.suppress(Exception):
                     self._tmpfile.unlink()
-                except Exception:
-                    pass
         return tree

@@ -12,9 +12,6 @@ from __future__ import annotations
 
 import json
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 from metaflow.cards import MetaflowCard
 
@@ -26,7 +23,9 @@ class ProfileCard(MetaflowCard):
     ALLOW_USER_COMPONENTS = False
     RUNTIME_UPDATABLE = False
 
-    def __init__(self, options: Dict[str, Any] = {}, **kwargs: Any) -> None:
+    def __init__(self, options: dict[str, Any] | None = None, **kwargs: Any) -> None:
+        if options is None:
+            options = {}
         super().__init__(**kwargs)
         self._artifact_name = options.get("artifact_name", "profile_card_data")
 
@@ -49,14 +48,14 @@ class ProfileCard(MetaflowCard):
                 traceback=err.get("traceback"),
             )
 
-        data: Dict[str, Any] = raw.get("data", {})
+        data: dict[str, Any] = raw.get("data", {})
         step_failed: bool = raw.get("step_failed", False)
         return _render_card(data, step_failed, task)
 
 
 # ── HTML helpers ──────────────────────────────────────────────────────────────
 
-def _error_html(title: str, detail: str = "", traceback: Optional[str] = None) -> str:
+def _error_html(title: str, detail: str = "", traceback: str | None = None) -> str:
     tb_section = ""
     if traceback:
         tb_section = f"""
@@ -112,13 +111,13 @@ def _stat_card(value: str, label: str, css_class: str = "") -> str:
     </div>"""
 
 
-def _render_card(data: Dict[str, Any], step_failed: bool, task: Any) -> str:
+def _render_card(data: dict[str, Any], step_failed: bool, task: Any) -> str:
     backend = data.get("backend", "unknown")
     duration = data.get("duration", 0.0)
     sample_count = data.get("sample_count", 0)
     call_tree = data.get("call_tree")
     memory_tree = data.get("memory_tree")
-    timeline: List[Dict[str, Any]] = data.get("timeline", [])
+    timeline: list[dict[str, Any]] = data.get("timeline", [])
     peak_cpu = data.get("peak_cpu_pct", 0.0)
     peak_mem = data.get("peak_rss_mb", 0.0)
     avg_cpu = data.get("avg_cpu_pct", 0.0)
@@ -611,7 +610,7 @@ function strColor(s) {
 }
 
 function _esc(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");  # noqa: E501
 }
 
 // ── Flamegraph renderer ───────────────────────────────────────────────────────
@@ -761,8 +760,8 @@ class FlameGraph {
         tooltip.style.top   = (e.clientY - 10) + "px";
         tooltip.innerHTML =
           `<div class="tooltip-name">${_esc(node.name)}</div>` +
-          `<div class="tooltip-row">${_esc(opts.valueLabel)}: <strong>${opts.valueFmt(node.value)}</strong> (${pct}% of view)</div>` +
-          (node.file ? `<div class="tooltip-row">File: <strong>${_esc(node.file)}</strong>${node.line ? ':' + node.line : ''}</div>` : "");
+          `<div class="tooltip-row">${_esc(opts.valueLabel)}: <strong>${opts.valueFmt(node.value)}</strong> (${pct}% of view)</div>` +  # noqa: E501
+          (node.file ? `<div class="tooltip-row">File: <strong>${_esc(node.file)}</strong>${node.line ? ':' + node.line : ''}</div>` : "");  # noqa: E501
       } else {
         canvas.style.cursor = "crosshair";
         tooltip.style.display = "none";
@@ -817,8 +816,8 @@ class FlameGraph {
       const label = n.name.length > 30 ? n.name.slice(0, 30) + "…" : n.name;
       return `<span class="crumb" data-idx="${i}">${_esc(label)}</span>`;
     });
-    parts.push(`<span>${_esc(this.currentRoot.name.length > 30 ? this.currentRoot.name.slice(0,30)+"…" : this.currentRoot.name)}</span>`);
-    bc.innerHTML = parts.join('<span class="sep">›</span>');
+    parts.push(`<span>${_esc(this.currentRoot.name.length > 30 ? this.currentRoot.name.slice(0,30)+"…" : this.currentRoot.name)}</span>`);  # noqa: E501
+    bc.innerHTML = parts.join('<span class="sep">›</span>');  # noqa: RUF001
     bc.querySelectorAll(".crumb").forEach(el => {
       el.addEventListener("click", () => {
         const idx = parseInt(el.dataset.idx, 10);

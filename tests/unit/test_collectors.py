@@ -5,19 +5,14 @@ from __future__ import annotations
 import importlib
 import time
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
 
-from metaflow_extensions.profiler.plugins.profilers._collectors import (
-    _MemoryTracker,
-    _TimelineCollector,
-    _build_memory_tree,
-)
+from metaflow_extensions.profiler.plugins.profilers._collectors import _build_memory_tree
+from metaflow_extensions.profiler.plugins.profilers._collectors import _MemoryTracker
+from metaflow_extensions.profiler.plugins.profilers._collectors import _TimelineCollector
 
 
 class TestTimelineCollectorBasic:
@@ -123,7 +118,7 @@ class TestBuildMemoryTree:
     """Unit tests for _build_memory_tree."""
 
     def _make_record(
-        self, stack: List[tuple], total_memory: int
+        self, stack: list[tuple], total_memory: int
     ) -> Any:
         """Build a mock memray AllocationRecord."""
         record = MagicMock()
@@ -263,7 +258,6 @@ class TestMemoryTracker:
         reason="memray not installed",
     )
     def test_with_memray_tmpfile_cleaned_up(self):
-        import tempfile
         mt = _MemoryTracker()
         mt.start()
         mt.stop()

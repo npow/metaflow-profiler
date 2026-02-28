@@ -12,11 +12,7 @@ They do not execute the code, so they run without any optional deps.
 from __future__ import annotations
 
 import ast
-import importlib
-import importlib.util
 from pathlib import Path
-from typing import List
-from typing import Set
 
 import pytest
 
@@ -26,22 +22,21 @@ PLUGINS_DIR = (
 )
 
 
-def _imports(path: Path) -> Set[str]:
+def _imports(path: Path) -> set[str]:
     """Return the set of dotted module names imported (directly) by *path*."""
     source = path.read_text()
     tree = ast.parse(source)
-    names: Set[str] = set()
+    names: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 names.add(alias.name)
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                names.add(node.module)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            names.add(node.module)
     return names
 
 
-def _src_imports(path: Path) -> Set[str]:
+def _src_imports(path: Path) -> set[str]:
     """Only return imports that are from the metaflow_extensions.profiler namespace."""
     all_imp = _imports(path)
     return {i for i in all_imp if "profiler" in i and "metaflow_extensions" in i}
@@ -49,7 +44,7 @@ def _src_imports(path: Path) -> Set[str]:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _check_no_import_from(source_path: Path, forbidden_substrings: List[str]) -> None:
+def _check_no_import_from(source_path: Path, forbidden_substrings: list[str]) -> None:
     imported = _imports(source_path)
     for imp in imported:
         for forbidden in forbidden_substrings:

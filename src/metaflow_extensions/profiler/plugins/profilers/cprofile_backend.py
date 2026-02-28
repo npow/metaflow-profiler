@@ -16,14 +16,8 @@ from __future__ import annotations
 import cProfile
 import io
 import pstats
-import sys
 import time
-import threading
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
 
 from ..profiler import ProfileData
 from ..profiler import ProfilerBackend
@@ -31,13 +25,12 @@ from . import register
 from ._collectors import _MemoryTracker
 from ._collectors import _TimelineCollector
 
-
 # ── call-tree builder ─────────────────────────────────────────────────────────
 
-_Key = Tuple[str, int, str]  # (filename, lineno, funcname)
+_Key = tuple[str, int, str]  # (filename, lineno, funcname)
 
 
-def _build_tree(raw: Dict[_Key, Any], max_depth: int = 40) -> Optional[Dict[str, Any]]:
+def _build_tree(raw: dict[_Key, Any], max_depth: int = 40) -> dict[str, Any] | None:
     """Convert a pstats raw stats dict into a d3-flamegraph tree.
 
     ``raw`` is ``{(file, line, func): (pcalls, ncalls, tt, ct, callers)}``.
@@ -48,7 +41,7 @@ def _build_tree(raw: Dict[_Key, Any], max_depth: int = 40) -> Optional[Dict[str,
         return None
 
     # Build inverted index: caller_key → list of callee_keys it called
-    called_by: Dict[_Key, List[_Key]] = {k: [] for k in raw}
+    called_by: dict[_Key, list[_Key]] = {k: [] for k in raw}
     for callee, (_pc, _nc, _tt, _ct, callers) in raw.items():
         for caller in callers:
             if caller in called_by:
@@ -62,7 +55,7 @@ def _build_tree(raw: Dict[_Key, Any], max_depth: int = 40) -> Optional[Dict[str,
         # Fallback: pick the function with the highest cumulative time
         roots = [max(raw, key=lambda k: raw[k][3])]
 
-    def build(key: _Key, depth: int, visited: frozenset) -> Optional[Dict[str, Any]]:
+    def build(key: _Key, depth: int, visited: frozenset) -> dict[str, Any] | None:
         if depth > max_depth or key in visited:
             return None
         _pc, _nc, _tt, ct, _callers = raw[key]
@@ -79,7 +72,7 @@ def _build_tree(raw: Dict[_Key, Any], max_depth: int = 40) -> Optional[Dict[str,
             if child is not None:
                 children.append(child)
 
-        node: Dict[str, Any] = {"name": label, "value": ms, "file": file, "line": line}
+        node: dict[str, Any] = {"name": label, "value": ms, "file": file, "line": line}
         if children:
             node["children"] = children
         return node
@@ -117,7 +110,7 @@ class CProfileBackend(ProfilerBackend):
     name = "cprofile"
 
     def __init__(self, timeline_interval: float = 0.5) -> None:
-        self._profiler: Optional[cProfile.Profile] = None
+        self._profiler: cProfile.Profile | None = None
         self._timeline = _TimelineCollector(interval=timeline_interval)
         self._memory = _MemoryTracker()
         self._t0: float = 0.0
@@ -143,7 +136,7 @@ class CProfileBackend(ProfilerBackend):
         memory_tree = self._memory.stop()
 
         # ── extract stats ─────────────────────────────────────────────────────
-        call_tree: Optional[Dict[str, Any]] = None
+        call_tree: dict[str, Any] | None = None
         sample_count = 0
 
         try:
@@ -153,7 +146,7 @@ class CProfileBackend(ProfilerBackend):
             sample_count = int(stats.total_calls)
 
             # pstats.Stats.stats: dict of (file, line, func) → (pcalls, ncalls, tt, ct, callers)
-            raw: Dict[_Key, Any] = stats.stats  # type: ignore[attr-defined]
+            raw: dict[_Key, Any] = stats.stats  # type: ignore[attr-defined]
             call_tree = _build_tree(raw)
         except Exception:
             call_tree = None
@@ -173,8 +166,12 @@ class CProfileBackend(ProfilerBackend):
             avg_cpu_pct=sum(cpus) / len(cpus),
             avg_rss_mb=sum(mems) / len(mems),
             memory_tree=memory_tree,
-            peak_disk_read_mb_s=max((p.get("disk_read_mb_s", 0.0) for p in timeline), default=0.0),
-            peak_disk_write_mb_s=max((p.get("disk_write_mb_s", 0.0) for p in timeline), default=0.0),
+            peak_disk_read_mb_s=max(
+                (p.get("disk_read_mb_s", 0.0) for p in timeline), default=0.0
+            ),
+            peak_disk_write_mb_s=max(
+                (p.get("disk_write_mb_s", 0.0) for p in timeline), default=0.0
+            ),
             peak_net_recv_mb_s=max((p.get("net_recv_mb_s", 0.0) for p in timeline), default=0.0),
             peak_net_sent_mb_s=max((p.get("net_sent_mb_s", 0.0) for p in timeline), default=0.0),
             peak_gpu_pct=max((p.get("gpu_pct", 0.0) for p in timeline), default=0.0),

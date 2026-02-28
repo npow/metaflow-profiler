@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from metaflow_extensions.profiler.plugins.profilers import (
-    available_backends,
-    default_backend,
-    get_backend,
-    register,
-    _REGISTRY,
-)
-from metaflow_extensions.profiler.plugins.profiler import ProfilerBackend, ProfileData
+from metaflow_extensions.profiler.plugins.profiler import ProfilerBackend
+from metaflow_extensions.profiler.plugins.profilers import _REGISTRY
+from metaflow_extensions.profiler.plugins.profilers import available_backends
+from metaflow_extensions.profiler.plugins.profilers import default_backend
+from metaflow_extensions.profiler.plugins.profilers import get_backend
+from metaflow_extensions.profiler.plugins.profilers import register
 
 
 class TestRegistry:

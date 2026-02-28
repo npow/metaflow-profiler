@@ -6,14 +6,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from metaflow_extensions.profiler.plugins.cards.profile_card.card import (
-    ProfileCard,
-    _error_html,
-    _fmt_duration,
-    _fmt_mb,
-    _render_card,
-)
-
+from metaflow_extensions.profiler.plugins.cards.profile_card.card import ProfileCard
+from metaflow_extensions.profiler.plugins.cards.profile_card.card import _error_html
+from metaflow_extensions.profiler.plugins.cards.profile_card.card import _fmt_duration
+from metaflow_extensions.profiler.plugins.cards.profile_card.card import _fmt_mb
+from metaflow_extensions.profiler.plugins.cards.profile_card.card import _render_card
 
 _SAMPLE_DATA = {
     "backend": "cprofile",
@@ -29,7 +26,7 @@ _SAMPLE_DATA = {
                 "file": "utils.py",
                 "line": 42,
                 "children": [
-                    {"name": "inner (utils.py:10)", "value": 1000.0, "file": "utils.py", "line": 10},
+                    {"name": "inner (utils.py:10)", "value": 1000.0, "file": "utils.py", "line": 10},  # noqa: E501
                 ],
             },
             {"name": "light_fn (utils.py:99)", "value": 1140.0, "file": "utils.py", "line": 99},

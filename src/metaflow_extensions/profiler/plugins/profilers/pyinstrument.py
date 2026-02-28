@@ -8,16 +8,12 @@ from __future__ import annotations
 
 import json
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 from ..profiler import ProfileData
 from ..profiler import ProfilerBackend
 from . import register
 from ._collectors import _MemoryTracker
 from ._collectors import _TimelineCollector
-
 
 # ── frame conversion ──────────────────────────────────────────────────────────
 
@@ -42,8 +38,8 @@ def _parse_frame_str(frame_str: str):
 
 
 def _build_tree_from_frame_records(
-    frame_records: List[Any],
-) -> Optional[Dict[str, Any]]:
+    frame_records: list[Any],
+) -> dict[str, Any] | None:
     """Build a d3-flamegraph tree from pyinstrument's frame_records format.
 
     Each record is ([frame_str, ...], timing_float).  The stack runs from
@@ -52,12 +48,12 @@ def _build_tree_from_frame_records(
     """
 
     class _Node:
-        __slots__ = ("name", "value", "children")
+        __slots__ = ("children", "name", "value")
 
         def __init__(self, name: str) -> None:
             self.name = name
             self.value = 0.0
-            self.children: Dict[str, "_Node"] = {}
+            self.children: dict[str, _Node] = {}
 
     root = _Node("root")
 
@@ -95,8 +91,8 @@ def _build_tree_from_frame_records(
     if not root.children:
         return None
 
-    def _to_d3(node: _Node) -> Dict[str, Any]:
-        result: Dict[str, Any] = {"name": node.name, "value": round(node.value, 2)}
+    def _to_d3(node: _Node) -> dict[str, Any]:
+        result: dict[str, Any] = {"name": node.name, "value": round(node.value, 2)}
         children = [
             _to_d3(c) for c in node.children.values() if c.value >= 0.1
         ]
@@ -109,7 +105,7 @@ def _build_tree_from_frame_records(
     return _to_d3(root)
 
 
-def _frame_to_d3(frame: Dict[str, Any]) -> Dict[str, Any]:
+def _frame_to_d3(frame: dict[str, Any]) -> dict[str, Any]:
     """Recursively convert a pyinstrument frame dict → d3-flamegraph node.
 
     Used for older pyinstrument versions that emit a frame/root_frame tree.
@@ -122,7 +118,7 @@ def _frame_to_d3(frame: Dict[str, Any]) -> Dict[str, Any]:
     basename = filepath.rsplit("/", 1)[-1] if filepath else ""
     label = f"{fn} ({basename}:{line})" if basename else fn
 
-    node: Dict[str, Any] = {
+    node: dict[str, Any] = {
         "name": label,
         "value": ms,
         "file": filepath,
@@ -189,7 +185,7 @@ class PyinstrumentBackend(ProfilerBackend):
         memory_tree = self._memory.stop()
 
         # ── build call tree ───────────────────────────────────────────────────
-        call_tree: Optional[Dict[str, Any]] = None
+        call_tree: dict[str, Any] | None = None
         sample_count = 0
         duration = 0.0
 
@@ -198,10 +194,7 @@ class PyinstrumentBackend(ProfilerBackend):
             try:
                 raw_json = session.to_json()
                 # pyinstrument >= 4.6 returns a dict; older versions return a str
-                if isinstance(raw_json, str):
-                    raw = json.loads(raw_json)
-                else:
-                    raw = raw_json
+                raw = json.loads(raw_json) if isinstance(raw_json, str) else raw_json
                 sample_count = raw.get("sample_count") or 0
 
                 # New format (pyinstrument >= 5.x): frame_records list of (stack, timing)
@@ -232,8 +225,12 @@ class PyinstrumentBackend(ProfilerBackend):
             avg_cpu_pct=sum(cpus) / len(cpus),
             avg_rss_mb=sum(mems) / len(mems),
             memory_tree=memory_tree,
-            peak_disk_read_mb_s=max((p.get("disk_read_mb_s", 0.0) for p in timeline), default=0.0),
-            peak_disk_write_mb_s=max((p.get("disk_write_mb_s", 0.0) for p in timeline), default=0.0),
+            peak_disk_read_mb_s=max(
+                (p.get("disk_read_mb_s", 0.0) for p in timeline), default=0.0
+            ),
+            peak_disk_write_mb_s=max(
+                (p.get("disk_write_mb_s", 0.0) for p in timeline), default=0.0
+            ),
             peak_net_recv_mb_s=max((p.get("net_recv_mb_s", 0.0) for p in timeline), default=0.0),
             peak_net_sent_mb_s=max((p.get("net_sent_mb_s", 0.0) for p in timeline), default=0.0),
             peak_gpu_pct=max((p.get("gpu_pct", 0.0) for p in timeline), default=0.0),
