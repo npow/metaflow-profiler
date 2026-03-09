@@ -3,7 +3,7 @@
 [![CI](https://github.com/npow/metaflow-profiler/actions/workflows/ci.yml/badge.svg)](https://github.com/npow/metaflow-profiler/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/metaflow-profiler)](https://pypi.org/project/metaflow-profiler/)
 [![Python](https://img.shields.io/pypi/pyversions/metaflow-profiler)](https://pypi.org/project/metaflow-profiler/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE) [![Docs](https://img.shields.io/badge/docs-mintlify-18a34a?style=flat-square)](https://mintlify.com/npow/metaflow-profiler)
 
 **Add one decorator to any Metaflow step and get an interactive flamegraph card in the UI.**
 
